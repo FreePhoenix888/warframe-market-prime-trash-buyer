@@ -3,8 +3,7 @@ use {
     clap::arg,
     reqwest::{Client, Url},
     serde::{
-        de,
-        de::{MapAccess, Visitor},
+        de::{self, MapAccess, Visitor},
         ser::SerializeStruct,
         Deserialize, Deserializer, Serialize, Serializer,
     },
