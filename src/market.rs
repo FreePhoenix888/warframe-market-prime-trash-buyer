@@ -137,7 +137,7 @@ impl<'de, R: Deserialize<'de>> Deserialize<'de> for Payload<R> {
                 V: MapAccess<'de>,
             {
                 let mut payload = None;
-                while let Some(_) = map.next_key::<Field>()? {
+                while map.next_key::<Field>()?.is_some(/* we have one field */) {
                     if payload.is_some() {
                         return Err(de::Error::duplicate_field("payload"));
                     }
