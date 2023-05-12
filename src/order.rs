@@ -12,10 +12,10 @@ pub struct Order {
     pub platform: String,
     pub id: String,
     pub region: String,
-    pub item: Option<crate::market::ItemsItem>
+    pub item: Option<crate::market::ItemsItem>,
 }
 
-impl From<crate::market::Order> for Order{
+impl From<crate::market::Order> for Order {
     fn from(order: crate::market::Order) -> Self {
         Order {
             visible: order.visible,
@@ -28,7 +28,7 @@ impl From<crate::market::Order> for Order{
             platform: order.platform,
             id: order.id,
             region: order.region,
-            item: None
+            item: None,
         }
     }
 }

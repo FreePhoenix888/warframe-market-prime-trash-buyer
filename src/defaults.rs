@@ -13,5 +13,5 @@ pub fn default_get_message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) 
 }
 
 pub fn default_get_profitable_sum(order: &Order) -> i32 {
-    order.quantity *  (if order.platinum > 3 {3} else {order.platinum})
+    order.quantity * (if order.platinum > 3 { 3 } else { order.platinum })
 }

@@ -1,12 +1,13 @@
+use anyhow::Result;
+use futures_util::{StreamExt, TryFutureExt};
+
 use crate::default_filter_order::default_filter_order;
 use crate::default_get_message::default_get_message;
 use crate::default_get_sum::default_get_profitable_sum;
-use crate::order::Order;
+use crate::defaults::{default_filter_order, default_get_message, default_get_profitable_sum};
 use crate::market;
-use anyhow::Result;
-use futures_util::{StreamExt, TryFutureExt};
 use crate::market::Market;
-
+use crate::order::Order;
 
 pub struct PrimeTrashBuyer<'a> {
     warframe_market: &'a market::Market,
@@ -43,10 +44,9 @@ impl PrimeTrashBuyer<'_> {
             .collect()
     }
 
-    pub async fn get_messages(&self ,orders: Vec<Order>) -> Vec<String> {
+    pub async fn get_messages(&self, orders: Vec<Order>) -> Vec<String> {
         orders.into_iter().map(|order| {
             (self.get_message)(&order, &self.get_profitable_sum)
         }).collect()
     }
-
 }

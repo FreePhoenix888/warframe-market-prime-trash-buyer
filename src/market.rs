@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use reqwest::{Client, Url};
 use anyhow::Result;
 use clap::arg;
+use reqwest::{Client, Url};
+use serde::{Deserialize, Serialize};
 
 pub struct Market {
     pub base_url: Url,
@@ -24,9 +24,6 @@ impl Market {
     }
 
 
-
-
-
     pub async fn fetch_orders(&self, item_url: String) -> Result<OrdersApiResponse> {
         let url = self.base_url.join(&format!("/items/{}/orders", item_url)).unwrap();
         let resp = self.client.get(url).send().await?;
@@ -34,7 +31,6 @@ impl Market {
         let json_resp: OrdersApiResponse = serde_json::from_str(&body)?;
         Ok(json_resp)
     }
-
 }
 
 #[derive(Serialize, Deserialize)]
