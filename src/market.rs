@@ -57,7 +57,7 @@ pub struct User {
     pub reputation: usize,
     pub locale: String,
     pub avatar: Option<String>,
-    #[serde(rename = "ingameName")]
+    #[serde(rename = "ingame_name")]
     pub name: String,
     pub last_seen: String,
     pub id: String,
@@ -76,9 +76,9 @@ pub type OrdersApiResponse = Payload<OrdersPayload>;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ItemsItem {
     pub id: String,
-    #[serde(rename = "urlName")]
+    #[serde(rename = "url_name")]
     pub url: String,
-    #[serde(rename = "itemName")]
+    #[serde(rename = "item_name")]
     pub name: String,
     pub thumb: String,
     pub vaulted: Option<bool>,
