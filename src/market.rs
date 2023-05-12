@@ -31,11 +31,6 @@ impl Market {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ApiResponse<TPayload> {
-    pub(crate) payload: TPayload,
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct Order {
     pub visible: bool,
     pub creation_date: String,
@@ -110,45 +105,11 @@ impl<'de, R: Deserialize<'de>> Deserialize<'de> for Payload<R> {
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field {
-            Payload,
+        struct PayloadRepr<R> {
+            payload: R,
         }
 
-        struct PayloadVisitor<R> {
-            _marker: PhantomData<R>,
-        }
-
-        impl<R> Default for PayloadVisitor<R> {
-            fn default() -> Self {
-                Self { _marker: PhantomData }
-            }
-        }
-
-        impl<'de, R: Deserialize<'de>> Visitor<'de> for PayloadVisitor<R> {
-            type Value = Payload<R>;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("struct Payload")
-            }
-
-            fn visit_map<V>(self, mut map: V) -> Result<Payload<R>, V::Error>
-            where
-                V: MapAccess<'de>,
-            {
-                let mut payload = None;
-                while map.next_key::<Field>()?.is_some(/* we have one field */) {
-                    if payload.is_some() {
-                        return Err(de::Error::duplicate_field("payload"));
-                    }
-                    payload = Some(map.next_value()?);
-                }
-                let payload = payload.ok_or_else(|| de::Error::missing_field("payload"))?;
-                Ok(Payload(payload))
-            }
-        }
-
-        deserializer.deserialize_struct("Payload", &["payload"], PayloadVisitor::default())
+        Ok(Self(PayloadRepr::deserialize(deserializer)?.payload))
     }
 }
 
