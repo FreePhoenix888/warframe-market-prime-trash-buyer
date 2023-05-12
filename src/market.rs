@@ -3,29 +3,27 @@ use clap::arg;
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
+const BASE_URL: Url = Url::parse("https://api.warframe.market/v1").unwrap();
+
 pub struct Market {
-    pub base_url: Url,
     pub client: Client,
 }
 
 impl Market {
     pub fn new() -> Self {
-        let base_url = Url::parse("https://api.warframe.market/v1").unwrap();
         let client = Client::new();
-        Market { base_url, client }
+        Market { client }
     }
 
     pub async fn fetch_items(&self) -> Result<ItemsApiResponse> {
-        let url = self.base_url.join("/items").unwrap();
+        let url = BASE_URL.join("/items").unwrap();
         let resp = self.client.get(url).send().await?;
-        let body = resp.text().await?;
-        let json_resp: ItemsApiResponse = serde_json::from_str(&body)?;
-        Ok(json_resp)
+        Ok(resp.json())
     }
 
 
     pub async fn fetch_orders(&self, item_url: String) -> Result<OrdersApiResponse> {
-        let url = self.base_url.join(&format!("/items/{}/orders", item_url)).unwrap();
+        let url = BASE_URL.join(&format!("/items/{}/orders", item_url)).unwrap();
         let resp = self.client.get(url).send().await?;
         let body = resp.text().await?;
         let json_resp: OrdersApiResponse = serde_json::from_str(&body)?;
