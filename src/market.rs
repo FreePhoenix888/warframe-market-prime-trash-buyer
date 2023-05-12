@@ -3,16 +3,16 @@ use reqwest::{Client, Url};
 use anyhow::Result;
 use clap::arg;
 
-pub struct WarframeMarket {
+pub struct Market {
     pub base_url: Url,
     pub client: Client,
 }
 
-impl WarframeMarket {
+impl Market {
     pub fn new() -> Self {
         let base_url = Url::parse("https://api.warframe.market/v1").unwrap();
         let client = Client::new();
-        WarframeMarket { base_url, client }
+        Market { base_url, client }
     }
 
     pub async fn fetch_items(&self) -> Result<ItemsApiResponse> {

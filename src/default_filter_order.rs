@@ -1,4 +1,4 @@
-use crate::warframe_market::Order;
+use crate::market::Order;
 
 pub fn default_filter_order(order: &Order) -> bool {
     order.order_type == "sell" &&

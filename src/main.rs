@@ -1,7 +1,7 @@
 use clap::Parser;
 use tokio;
 
-mod warframe_market;
+mod market;
 mod order;
 mod prime_trash_buyer;
 mod default_filter_order;
