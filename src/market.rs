@@ -2,7 +2,16 @@ use {
     anyhow::Result,
     clap::arg,
     reqwest::{Client, Url},
-    serde::{Deserialize, Serialize},
+    serde::{
+        de,
+        de::{MapAccess, Visitor},
+        ser::SerializeStruct,
+        Deserialize, Deserializer, Serialize, Serializer,
+    },
+    std::{
+        fmt::{self, Write},
+        marker::PhantomData,
+    },
 };
 
 const URL: &str = "https://api.warframe.market/v1";
@@ -22,33 +31,31 @@ impl Market {
         Ok(self.client.get(ITEMS).send().await?.json().await?)
     }
 
-    pub async fn fetch_orders(&self, item_url: String) -> Result<OrdersApiResponse> {
-        let url = format!("{ITEMS}/{}/orders", item_url);
+    pub async fn fetch_orders(&self, item_url: &str) -> Result<OrdersApiResponse> {
+        let url = format!("{ITEMS}/{item_url}/orders");
         Ok(self.client.get(&url).send().await?.json().await?)
     }
 
-    // todo:
-    // pub async fn orders(&self, item: crate::market::ItemsItem) -> Result<Vec<Order>> {
-    //     let orders_api_response =
-    //         self.warframe_market.fetch_orders(item.url_name.to_string()).await?;
-    //     let orders = orders_api_response.payload.orders;
-    //     orders
-    //         .into_iter()
-    //         .filter(&self.filter_order)
-    //         .map(|order| {
-    //             let mut new_order = Order::from(order);
-    //             new_order.item = Some(item.clone());
-    //             Ok(new_order)
-    //         })
-    //         .collect()
-    // }
+    //pub async fn orders(&self, item: ItemsItem) -> Result<Vec<Order>> {
+    //    let orders_api_response = self.fetch_orders(&item.url).await?;
+    //    let orders = orders_api_response.payload.orders;
+    //    orders
+    //        .into_iter()
+    //        .filter(&self.filter_order)
+    //        .map(|order| {
+    //            let mut new_order = Order::from(order);
+    //            new_order.item = Some(item.clone());
+    //            Ok(new_order)
+    //        })
+    //        .collect()
+    //}
     //
-    // pub async fn get_messages(&self, orders: Vec<Order>) -> Vec<String> {
-    //     orders
-    //         .into_iter()
-    //         .map(|order| (self.get_message)(&order, &self.get_profitable_sum))
-    //         .collect()
-    // }
+    //pub async fn get_messages(&self, orders: Vec<Order>) -> Vec<String> {
+    //    orders
+    //        .into_iter()
+    //        .map(|order| (self.get_message)(&order, &self.get_profitable_sum))
+    //        .collect()
+    //}
 }
 
 #[derive(Serialize, Deserialize)]
@@ -110,3 +117,72 @@ pub struct ItemsPayload {
 }
 
 pub type ItemsApiResponse = ApiResponse<ItemsPayload>;
+
+struct Payload<R>(R);
+
+impl<R: Serialize> Serialize for Payload<R> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut payload = serializer.serialize_struct("Payload", 1)?;
+        payload.serialize_field("payload", &self.0)?;
+        payload.end()
+    }
+}
+
+impl<'de, R: Deserialize<'de>> Deserialize<'de> for Payload<R> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Payload,
+        }
+
+        struct PayloadVisitor<R> {
+            _marker: PhantomData<R>,
+        }
+
+        impl<R> Default for PayloadVisitor<R> {
+            fn default() -> Self {
+                Self { _marker: PhantomData }
+            }
+        }
+
+        impl<'de, R: Deserialize<'de>> Visitor<'de> for PayloadVisitor<R> {
+            type Value = Payload<R>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("struct Payload")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<Payload<R>, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut payload = None;
+                while let Some(_) = map.next_key::<Field>()? {
+                    if payload.is_some() {
+                        return Err(de::Error::duplicate_field("payload"));
+                    }
+                    payload = Some(map.next_value()?);
+                }
+                let payload = payload.ok_or_else(|| de::Error::missing_field("payload"))?;
+                Ok(Payload(payload))
+            }
+        }
+
+        deserializer.deserialize_struct("Payload", &["payload"], PayloadVisitor::default())
+    }
+}
+
+#[test]
+fn payload_transparency() {
+    let json = serde_json::to_string(&Payload(b"test")).unwrap();
+    let Payload::<[u8; 4]>([116, 101, 115, 116]) = serde_json::from_str(&json).unwrap() else {
+        panic!()
+    };
+}
