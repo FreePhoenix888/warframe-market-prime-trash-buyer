@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::cmp;
 use std::string::ToString;
 use crate::order::Order;
 
@@ -19,7 +19,7 @@ pub fn get_message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> Strin
 }
 
 pub fn get_sum(order: &Order) -> i32 {
-    order.quantity * min(3, order.platinum)
+    order.quantity * cmp::min(3, order.platinum)
 }
 
 pub const ITEM_NAMES_TO_BUY: Vec<&'static str> = vec![
