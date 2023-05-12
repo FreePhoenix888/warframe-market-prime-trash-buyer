@@ -1,29 +1,23 @@
 use {
     anyhow::Result,
-    clap::arg,
-    reqwest::{Client, Url},
     serde::{
         de::{self, MapAccess, Visitor},
         ser::SerializeStruct,
         Deserialize, Deserializer, Serialize, Serializer,
     },
-    std::{
-        fmt::{self, Write},
-        marker::PhantomData,
-    },
+    std::{fmt, marker::PhantomData},
 };
 
 const URL: &str = "https://api.warframe.market/v1";
 const ITEMS: &str = "https://api.warframe.market/v1/items";
 
 pub struct Market {
-    pub client: Client,
+    pub client: reqwest::Client,
 }
 
 impl Market {
     pub fn new() -> Self {
-        let client = Client::new();
-        Market { client }
+        Market { client: reqwest::Client::new() }
     }
 
     pub async fn fetch_items(&self) -> Result<ItemsApiResponse> {
@@ -34,27 +28,6 @@ impl Market {
         let url = format!("{ITEMS}/{item_url}/orders");
         Ok(self.client.get(&url).send().await?.json().await?)
     }
-
-    //pub async fn orders(&self, item: ItemsItem) -> Result<Vec<Order>> {
-    //    let orders_api_response = self.fetch_orders(&item.url).await?;
-    //    let orders = orders_api_response.payload.orders;
-    //    orders
-    //        .into_iter()
-    //        .filter(&self.filter_order)
-    //        .map(|order| {
-    //            let mut new_order = Order::from(order);
-    //            new_order.item = Some(item.clone());
-    //            Ok(new_order)
-    //        })
-    //        .collect()
-    //}
-    //
-    //pub async fn get_messages(&self, orders: Vec<Order>) -> Vec<String> {
-    //    orders
-    //        .into_iter()
-    //        .map(|order| (self.get_message)(&order, &self.get_profitable_sum))
-    //        .collect()
-    //}
 }
 
 #[derive(Serialize, Deserialize)]
@@ -97,7 +70,8 @@ pub struct OrdersPayload {
     pub orders: Vec<Order>,
 }
 
-pub type OrdersApiResponse = ApiResponse<OrdersPayload>;
+// fixme: use `Payload` manually in place
+pub type OrdersApiResponse = Payload<OrdersPayload>;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ItemsItem {
@@ -115,9 +89,9 @@ pub struct ItemsPayload {
     pub items: Vec<ItemsItem>,
 }
 
-pub type ItemsApiResponse = ApiResponse<ItemsPayload>;
+pub type ItemsApiResponse = Payload<ItemsPayload>;
 
-struct Payload<R>(R);
+pub struct Payload<R>(R);
 
 impl<R: Serialize> Serialize for Payload<R> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

@@ -1,7 +1,4 @@
-use {
-    crate::market::{Order, User},
-    std::{cmp, string::ToString},
-};
+use crate::market::{Order, User};
 
 pub fn filter(order: &Order) -> bool {
     order.order_type == "sell"
@@ -17,7 +14,7 @@ pub fn message(order: &Order, sum: impl Fn(&Order) -> usize) -> String {
         You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
         I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
         item = item.as_ref().expect("TODO").name,
-        sum = sum(&order),
+        sum = sum(order),
     )
 }
 

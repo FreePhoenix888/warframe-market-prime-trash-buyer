@@ -2,7 +2,6 @@ use {clap::Parser, tokio};
 
 mod defaults;
 mod market;
-mod order;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
