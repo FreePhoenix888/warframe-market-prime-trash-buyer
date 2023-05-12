@@ -4,9 +4,7 @@ use tokio;
 mod market;
 mod order;
 mod prime_trash_buyer;
-mod default_filter_order;
-mod default_get_message;
-mod default_get_sum;
+mod defaults;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
