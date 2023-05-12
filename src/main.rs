@@ -1,10 +1,8 @@
-use clap::Parser;
-use tokio;
+use {clap::Parser, tokio};
 
+mod defaults;
 mod market;
 mod order;
-mod prime_trash_buyer;
-mod defaults;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

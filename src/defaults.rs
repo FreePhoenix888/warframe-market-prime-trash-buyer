@@ -1,28 +1,31 @@
-use std::cmp;
-use std::string::ToString;
-use crate::order::Order;
+use {
+    crate::market::{Order, User},
+    std::{cmp, string::ToString},
+};
 
-pub fn filter(order: &crate::market::Order) -> bool {
-    order.order_type == "sell" &&
-        order.user.status == "ingame" &&
-        order.platinum <= 5 &&
-        order.quantity >= 5
+pub fn filter(order: &Order) -> bool {
+    order.order_type == "sell"
+        && order.user.status == "ingame"
+        && order.platinum <= 5
+        && order.quantity >= 5
 }
 
-pub fn get_message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> String {
-    let user_name = &order.user.ingame_name;
-    let item_name = &order.item?.item_name;
-    let platinum = order.platinum;
-    let quantity = order.quantity;
-    let sum = get_sum(&order);
-    format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)")
+pub fn message(order: &Order, sum: impl Fn(&Order) -> usize) -> String {
+    let Order { user: User { name, .. }, platinum, quantity, item, .. } = order;
+    format!(
+        "/w {name} Hi, {name}! \
+        You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
+        I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
+        item = item.as_ref().expect("TODO").name,
+        sum = sum(&order),
+    )
 }
 
-pub fn get_sum(order: &Order) -> i32 {
-    order.quantity * cmp::min(3, order.platinum)
+pub fn sum(order: &Order) -> usize {
+    order.quantity * order.platinum.min(3)
 }
 
-pub const ITEM_NAMES_TO_BUY: Vec<&'static str> = vec![
+pub const ITEMS_TO_BUY: [&str; 36] = [
     "Harrow Prime Blueprint",
     "Astilla Prime Stock",
     "Braton Prime Receiver",
