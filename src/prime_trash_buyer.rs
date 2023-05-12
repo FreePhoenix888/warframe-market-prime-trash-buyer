@@ -4,7 +4,7 @@ use futures_util::{StreamExt, TryFutureExt};
 use crate::default_filter_order::default_filter_order;
 use crate::default_get_message::default_get_message;
 use crate::default_get_sum::default_get_profitable_sum;
-use crate::defaults::{default_filter_order, default_get_message, default_get_profitable_sum};
+use crate::defaults::{filter, get_message, get_sum};
 use crate::market;
 use crate::market::Market;
 use crate::order::Order;
@@ -25,9 +25,9 @@ impl PrimeTrashBuyer<'_> {
     ) -> PrimeTrashBuyer {
         PrimeTrashBuyer {
             warframe_market,
-            filter_order: filter_order.unwrap_or_else(|| Box::new(default_filter_order)),
-            get_profitable_sum: get_profitable_sum.unwrap_or_else(|| Box::new(default_get_profitable_sum)),
-            get_message: get_message.unwrap_or_else(|| Box::new(default_get_message)),
+            filter_order: filter_order.unwrap_or_else(|| Box::new(filter)),
+            get_profitable_sum: get_profitable_sum.unwrap_or_else(|| Box::new(get_profitable_sum)),
+            get_message: get_message.unwrap_or_else(|| Box::new(get_message)),
         }
     }
 
