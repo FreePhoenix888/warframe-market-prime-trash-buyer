@@ -16,14 +16,14 @@ impl Market {
     }
 
     pub async fn fetch_items(&self) -> Result<ItemsApiResponse> {
-        let url = BASE_URL.join("/items").unwrap();
+        let url = BASE_URL.join("/items")?;
         let resp = self.client.get(url).send().await?;
         Ok(resp.json())
     }
 
 
     pub async fn fetch_orders(&self, item_url: String) -> Result<OrdersApiResponse> {
-        let url = BASE_URL.join(&format!("/items/{}/orders", item_url)).unwrap();
+        let url = BASE_URL.join(&format!("/items/{}/orders", item_url))?;
         let resp = self.client.get(url).send().await?;
         let body = resp.text().await?;
         let json_resp: OrdersApiResponse = serde_json::from_str(&body)?;
