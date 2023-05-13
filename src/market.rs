@@ -50,7 +50,8 @@ pub struct User {
     pub reputation: usize,
     pub locale: String,
     pub avatar: Option<String>,
-    pub ingame_name: String,
+    #[serde(rename = "ingame_name")]
+    pub name: String,
     pub last_seen: String,
     pub id: String,
     pub region: String,
