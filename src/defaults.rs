@@ -9,7 +9,7 @@ pub fn filter(order: &crate::market::Order) -> bool {
         order.quantity >= 5
 }
 
-pub fn get_message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> String {
+pub fn message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> String {
     let user_name = &order.user.ingame_name;
     let item_name = &order.item?.item_name;
     let platinum = order.platinum;
@@ -18,7 +18,7 @@ pub fn get_message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> Strin
     format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)")
 }
 
-pub fn get_sum(order: &Order) -> i32 {
+pub fn sum(order: &Order) -> i32 {
     order.quantity * cmp::min(3, order.platinum)
 }
 
