@@ -19,7 +19,7 @@ pub fn message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> String {
 }
 
 pub fn sum(order: &Order) -> i32 {
-    order.quantity * cmp::min(3, order.platinum)
+    order.quantity * order.platinum.min(3)
 }
 
 pub const ITEM_NAMES_TO_BUY: [&str; 36] = [
