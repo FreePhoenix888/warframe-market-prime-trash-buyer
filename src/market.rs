@@ -3,7 +3,8 @@ use clap::arg;
 use serde::{Deserialize, Serialize};
 use crate::order::Order;
 
-const BASE_URL: reqwest::Url = reqwest::Url::parse("https://api.warframe.market/v1").unwrap();
+const URL: &str = "https://api.warframe.market/v1";
+const ITEMS: &str = "https://api.warframe.market/v1/items";
 
 pub struct Market {
     pub client: reqwest::Client,
