@@ -35,10 +35,10 @@ pub struct ApiResponse<TPayload> {
 pub struct Order {
     pub visible: bool,
     pub creation_date: String,
-    pub quantity: i32,
+    pub quantity: usize,
     pub user: User,
     pub last_update: String,
-    pub platinum: i32,
+    pub platinum: usize,
     pub order_type: String,
     pub platform: String,
     pub id: String,
@@ -47,7 +47,7 @@ pub struct Order {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
-    pub reputation: i32,
+    pub reputation: usize,
     pub locale: String,
     pub avatar: Option<String>,
     pub ingame_name: String,
