@@ -70,8 +70,10 @@ pub type OrdersApiResponse = ApiResponse<OrdersPayload>;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ItemsItem {
     pub id: String,
-    pub url_name: String,
-    pub item_name: String,
+    #[serde(rename = "url_name")]
+    pub url_id: String,
+    #[serde(rename = "item_name")]
+    pub name: String,
     pub thumb: String,
     pub vaulted: Option<bool>,
 }
