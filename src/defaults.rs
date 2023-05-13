@@ -22,7 +22,7 @@ pub fn sum(order: &Order) -> i32 {
     order.quantity * cmp::min(3, order.platinum)
 }
 
-pub const ITEM_NAMES_TO_BUY: Vec<&'static str> = vec![
+pub const ITEM_NAMES_TO_BUY: [&str; 36] = [
     "Harrow Prime Blueprint",
     "Astilla Prime Stock",
     "Braton Prime Receiver",
