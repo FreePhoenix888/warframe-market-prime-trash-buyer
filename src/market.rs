@@ -1,17 +1,16 @@
 use anyhow::Result;
 use clap::arg;
-use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
-const BASE_URL: Url = Url::parse("https://api.warframe.market/v1").unwrap();
+const BASE_URL: reqwest::Url = reqwest::Url::parse("https://api.warframe.market/v1").unwrap();
 
 pub struct Market {
-    pub client: Client,
+    pub client: reqwest::Client,
 }
 
 impl Market {
     pub fn new() -> Self {
-        let client = Client::new();
+        let client = reqwest::Client::new();
         Market { client }
     }
 
