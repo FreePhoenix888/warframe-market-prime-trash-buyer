@@ -38,7 +38,8 @@ pub struct Order {
     pub quantity: usize,
     pub user: User,
     pub last_update: String,
-    pub platinum: usize,
+    #[serde(rename = "platinum")]
+    pub platinum_price: usize,
     pub order_type: String,
     pub platform: String,
     pub id: String,
