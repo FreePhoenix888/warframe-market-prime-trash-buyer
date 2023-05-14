@@ -1,7 +1,5 @@
 use anyhow::Result;
-use clap::arg;
 use serde::{Deserialize, Serialize};
-use crate::order::Order;
 
 const URL: &str = "https://api.warframe.market/v1";
 const ITEMS: &str = "https://api.warframe.market/v1/items";
@@ -45,6 +43,8 @@ pub struct Order {
     pub platform: String,
     pub id: String,
     pub region: String,
+    #[serde(skip)]
+    pub item: Option<ItemsItem>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -67,7 +67,7 @@ pub struct OrdersPayload {
 
 pub type OrdersApiResponse = ApiResponse<OrdersPayload>;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct ItemsItem {
     pub id: String,
     #[serde(rename = "url_name")]
