@@ -1,11 +1,12 @@
 use clap::Parser;
 use tokio;
+
 use crate::defaults::message;
 use crate::market::{ItemsItem, Order};
 
+mod defaults;
 mod market;
 mod prime_trash_buyer;
-mod defaults;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -34,19 +35,25 @@ async fn main() -> anyhow::Result<()> {
 
     let market = market::Market::new();
     let items_response = market.fetch_items().await?;
-    let items: Vec<ItemsItem> = items_response.payload.items
+    let items: Vec<ItemsItem> = items_response
+        .payload
+        .items
         .into_iter()
         .filter(|item| args.item_names.contains(&item.name))
         .collect();
     let mut all_orders: Vec<Order> = Vec::new();
     for item in items {
         let orders_response = market.fetch_orders(&item.url_id).await?;
-        let mut orders: Vec<Order> = orders_response.payload.orders
+        let mut orders: Vec<Order> = orders_response
+            .payload
+            .orders
             .into_iter()
-            .filter(|order| order.quantity >= args.minimal_quantity &&
-                order.platinum_price <= args.maximum_price &&
-            order.user.status == "ingame" &&
-            order.order_type == "sell")
+            .filter(|order| {
+                order.quantity >= args.minimal_quantity
+                    && order.platinum_price <= args.maximum_price
+                    && order.user.status == "ingame"
+                    && order.order_type == "sell"
+            })
             .map(|order| {
                 let mut new_order = Order::from(order);
                 new_order.item = Some(item.clone());
