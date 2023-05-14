@@ -8,12 +8,12 @@ pub fn filter(order: &Order) -> bool {
 }
 
 pub fn message(order: &Order, sum: impl Fn(&Order) -> usize) -> String {
-    let Order { user: User { name, .. }, platinum, quantity, item, .. } = order;
+    let Order { user: User { name, .. }, platinum, quantity, .. } = order;
     format!(
         "/w {name} Hi, {name}! \
         You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
         I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-        item = item.as_ref().expect("TODO").name,
+        item = todo!(),
         sum = sum(order),
     )
 }
