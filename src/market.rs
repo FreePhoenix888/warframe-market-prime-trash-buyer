@@ -49,6 +49,7 @@ pub struct Order {
     #[serde(rename = "platinum")]
     pub platinum_price: usize,
     pub order_type: String,
+
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -66,7 +67,7 @@ pub struct OrdersPayload {
 pub type OrdersApiResponse = ApiResponse<OrdersPayload>;
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
-pub struct ItemsItem {
+pub struct Item {
     #[serde(rename = "url_name")]
     pub url_id: String,
     #[serde(rename = "item_name")]
@@ -75,7 +76,7 @@ pub struct ItemsItem {
 
 #[derive(Serialize, Deserialize)]
 pub struct ItemsPayload {
-    pub items: Vec<ItemsItem>,
+    pub items: Vec<Item>,
 }
 
 pub type ItemsApiResponse = ApiResponse<ItemsPayload>;

@@ -3,7 +3,7 @@ use clap::Parser;
 use tokio;
 
 use crate::defaults::message;
-use crate::market::{ItemsItem, Order, User};
+use crate::market::{Item, Order, User};
 
 mod defaults;
 mod market;
