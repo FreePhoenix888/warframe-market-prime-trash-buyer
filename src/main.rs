@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
         for Order { user: User { name: user, .. }, platinum_price, quantity, .. } in orders {
             println!(
                 "  /w {user} Hi, {user}!\
-               You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
+               You have WTS order: {item} for {platinum_price} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
                 sum = quantity * platinum_price.min(args.max_price),
             );
