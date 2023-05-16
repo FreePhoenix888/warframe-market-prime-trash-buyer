@@ -49,8 +49,6 @@ pub struct Order {
     #[serde(rename = "platinum")]
     pub platinum_price: usize,
     pub order_type: String,
-    #[serde(skip)]
-    pub item: Option<ItemsItem>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
