@@ -8,16 +8,16 @@ pub fn filter(order: &crate::market::Order) -> bool {
         order.quantity >= 5
 }
 
-pub fn message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> Result<String> {
-    let user_name = &order.user.name;
-    let item_name = order.item.clone().unwrap_or_default().name;
-    let platinum = order.platinum_price;
-    let quantity = order.quantity;
-    let sum = get_sum(&order);
-    Ok(
-        format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)")
-    )
-}
+// pub fn message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> Result<String> {
+//     let user_name = &order.user.name;
+//     let item_name = order.item.clone().unwrap_or_default().name;
+//     let platinum = order.platinum_price;
+//     let quantity = order.quantity;
+//     let sum = get_sum(&order);
+//     Ok(
+//         format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)")
+//     )
+// }
 
 pub fn sum(order: &Order) -> usize {
     order.quantity * order.platinum_price.min(3)
