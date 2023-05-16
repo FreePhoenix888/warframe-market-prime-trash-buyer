@@ -34,13 +34,13 @@ async fn main() -> anyhow::Result<()> {
     println!("{:?}", args);
 
     let market = market::Market::new();
-    let items_response = market.fetch_items().await?;
-    let items: Vec<ItemsItem> = items_response
-        .payload
-        .items
+    let items: Vec<_> = market
+        .fetch_items()
+        .await?
         .into_iter()
-        .filter(|item| args.item_names.contains(&item.name))
+        .filter(|Item { name, .. }| args.items.contains(name))
         .collect();
+
     let mut all_orders: Vec<Order> = Vec::new();
     for item in items {
         let orders_response = market.fetch_orders(&item.url_id).await?;
