@@ -1,8 +1,9 @@
+use std::collections::HashMap;
 use clap::Parser;
 use tokio;
 
 use crate::defaults::message;
-use crate::market::{ItemsItem, Order};
+use crate::market::{ItemsItem, Order, User};
 
 mod defaults;
 mod market;
@@ -41,35 +42,37 @@ async fn main() -> anyhow::Result<()> {
         .filter(|Item { name, .. }| args.items.contains(name))
         .collect();
 
-    let mut all_orders: Vec<Order> = Vec::new();
-    for item in items {
-        let orders_response = market.fetch_orders(&item.url_id).await?;
-        let mut orders: Vec<Order> = orders_response
-            .payload
-            .orders
+    let mut orders: HashMap<&str, Vec<Order>> = HashMap::new();
+    for item in &items {
+        market
+            .fetch_orders(&item.url_id)
+            .await?
             .into_iter()
-            .filter(|order| {
-                order.quantity >= args.minimal_quantity
-                    && order.platinum_price <= args.maximum_price
-                    && order.user.status == "ingame"
-                    && order.order_type == "sell"
+            .filter(|Order { quantity, platinum_price, user, order_type, .. }| {
+                quantity >= &args.quantity
+                    && platinum_price <= &args.max_price
+                    && user.status == "ingame"
+                    && order_type == "sell"
             })
-            .map(|order| {
-                let mut new_order = Order::from(order);
-                new_order.item = Some(item.clone());
-                new_order
-            })
-            .collect();
-        all_orders.append(&mut orders)
+            .for_each(|order| {
+                #[rustfmt::skip]
+                orders.entry(&item.name)
+                    .and_modify(|orders| orders.push(order))
+                    .or_default();
+            });
     }
-    for order in all_orders {
-        let user_name = &order.user.name;
-        let item_name = order.item.clone().unwrap_or_default().name;
-        let platinum = order.platinum_price;
-        let quantity = order.quantity;
-        let sum = order.quantity * order.platinum_price.min(args.maximum_price);
-        let message = format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)");
-        println!("{}", message);
+
+    for (item, orders) in orders {
+        println!("`{item}`:");
+        for Order { user: User { name: user, .. }, platinum_price, quantity, .. } in orders {
+            println!(
+                "  /w {user} Hi, {user}!\
+               You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
+               I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
+                sum = quantity * platinum_price.min(args.max_price),
+            );
+        }
     }
+
     Ok(())
 }
