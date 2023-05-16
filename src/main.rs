@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use clap::Parser;
 use tokio;
 
-use crate::defaults::message;
 use crate::market::{Item, Order, User};
 
 mod defaults;
