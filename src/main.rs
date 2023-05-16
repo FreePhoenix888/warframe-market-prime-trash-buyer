@@ -14,11 +14,11 @@ mod prime_trash_buyer;
 struct Args {
     /// Item names to buy
     #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ',')]
-    item_names: Vec<String>,
+    items: Vec<String>,
 
     /// Minimum quantity of items order must have
     #[arg(long, default_value_t = 3)]
-    minimal_quantity: usize,
+    quantity: usize,
 
     /// Buy price in platinum that will be used in messages
     #[arg(long, default_value_t = 3)]
@@ -26,7 +26,7 @@ struct Args {
 
     /// Maximum price in platinum
     #[arg(long, default_value_t = 4)]
-    maximum_price: usize,
+    max_price: usize,
 }
 
 #[tokio::main]
