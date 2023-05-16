@@ -44,31 +44,19 @@ pub struct ApiResponse<TPayload> {
 
 #[derive(Serialize, Deserialize)]
 pub struct Order {
-    pub visible: bool,
-    pub creation_date: String,
     pub quantity: usize,
     pub user: User,
-    pub last_update: String,
     #[serde(rename = "platinum")]
     pub platinum_price: usize,
     pub order_type: String,
-    pub platform: String,
-    pub id: String,
-    pub region: String,
     #[serde(skip)]
     pub item: Option<ItemsItem>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
-    pub reputation: usize,
-    pub locale: String,
-    pub avatar: Option<String>,
     #[serde(rename = "ingame_name")]
     pub name: String,
-    pub last_seen: String,
-    pub id: String,
-    pub region: String,
     pub status: String,
 }
 
@@ -81,13 +69,10 @@ pub type OrdersApiResponse = ApiResponse<OrdersPayload>;
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct ItemsItem {
-    pub id: String,
     #[serde(rename = "url_name")]
     pub url_id: String,
     #[serde(rename = "item_name")]
     pub name: String,
-    pub thumb: String,
-    pub vaulted: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
