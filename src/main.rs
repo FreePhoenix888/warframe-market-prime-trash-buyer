@@ -1,12 +1,21 @@
-use std::collections::HashMap;
-use clap::Parser;
-use tokio;
+#![feature(map_try_insert)]
 
-use crate::market::{Item, Order, User};
+use {
+    clap::Parser,
+    std::collections::{
+        hash_map::{Entry, OccupiedError},
+        HashMap,
+    },
+    tokio,
+};
+
+use crate::{
+    defaults::message,
+    market::{Item, Market, Order, User},
+};
 
 mod defaults;
 mod market;
-mod prime_trash_buyer;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -21,7 +30,7 @@ struct Args {
 
     /// Buy price in platinum that will be used in messages
     #[arg(long, default_value_t = 3)]
-    buy_price: usize,
+    price: usize,
 
     /// Maximum price in platinum
     #[arg(long, default_value_t = 4)]
@@ -31,9 +40,8 @@ struct Args {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    println!("{:?}", args);
 
-    let market = market::Market::new();
+    let market = Market::new();
     let items: Vec<_> = market
         .fetch_items()
         .await?
@@ -41,34 +49,39 @@ async fn main() -> anyhow::Result<()> {
         .filter(|Item { name, .. }| args.items.contains(name))
         .collect();
 
-    let mut orders: HashMap<&str, Vec<Order>> = HashMap::new();
+    let mut orders = HashMap::<_, Vec<_>>::new();
     for item in &items {
         market
             .fetch_orders(&item.url_id)
             .await?
             .into_iter()
-            .filter(|Order { quantity, platinum_price, user, order_type, .. }| {
+            .filter(|order @ Order { quantity, platinum, user, .. }| {
                 quantity >= &args.quantity
-                    && platinum_price <= &args.max_price
+                    && platinum <= &args.max_price
                     && user.status == "ingame"
-                    && order_type == "sell"
+                    && order.ty == "sell"
             })
             .for_each(|order| {
-                #[rustfmt::skip]
-                orders.entry(&item.name)
-                    .and_modify(|orders| orders.push(order))
-                    .or_default();
+                let Order { user, .. } = &order; // isn't working in param match
+                match orders.entry(user.name.clone()) {
+                    Entry::Occupied(mut entry) => entry.get_mut().push((item, order)),
+                    Entry::Vacant(entry) => {
+                        entry.insert(Vec::from([(item, order)]));
+                    }
+                }
             });
     }
 
-    for (item, orders) in orders {
-        println!("`{item}`:");
-        for Order { user: User { name: user, .. }, platinum_price, quantity, .. } in orders {
+    for (user, orders) in orders {
+        // fixme: should be configured by verbosity
+        println!("Orders of `{user}`:");
+        for (item, Order { platinum, quantity, .. }) in orders {
             println!(
                 "  /w {user} Hi, {user}!\
-               You have WTS order: {item} for {platinum_price} :platinum: for each on warframe.market. \
+               You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-                sum = quantity * platinum_price.min(args.max_price),
+                sum = quantity * platinum.min(args.max_price),
+                item = item.name,
             );
         }
     }

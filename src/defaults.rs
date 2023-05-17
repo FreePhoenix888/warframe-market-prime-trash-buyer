@@ -1,29 +1,28 @@
-use crate::market::Order;
-use anyhow::Result;
+use crate::market::{Order, User};
 
-pub fn filter(order: &crate::market::Order) -> bool {
-    order.order_type == "sell" &&
-        order.user.status == "ingame" &&
-        order.platinum_price <= 5 &&
-        order.quantity >= 5
+pub fn filter(order: &Order) -> bool {
+    order.ty == "sell"
+        && order.user.status == "ingame"
+        && order.platinum <= 5
+        && order.quantity >= 5
 }
 
-// pub fn message(order: &Order, get_sum: &Box<dyn Fn(&Order) -> i32>) -> Result<String> {
-//     let user_name = &order.user.name;
-//     let item_name = order.item.clone().unwrap_or_default().name;
-//     let platinum = order.platinum_price;
-//     let quantity = order.quantity;
-//     let sum = get_sum(&order);
-//     Ok(
-//         format!("/w {user_name} Hi, {user_name}! You have WTS order: {item_name} for {platinum} :platinum: for each on warframe.market. I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)")
-//     )
-// }
+pub fn message(order: &Order, sum: impl Fn(&Order) -> usize) -> String {
+    let Order { user: User { name, .. }, platinum, quantity, .. } = order;
+    format!(
+        "/w {name} Hi, {name}! \
+        You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
+        I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
+        item = todo!(),
+        sum = sum(order),
+    )
+}
 
 pub fn sum(order: &Order) -> usize {
-    order.quantity * order.platinum_price.min(3)
+    order.quantity * order.platinum.min(3)
 }
 
-pub const ITEM_NAMES_TO_BUY: [&str; 36] = [
+pub const ITEMS_TO_BUY: [&str; 36] = [
     "Harrow Prime Blueprint",
     "Astilla Prime Stock",
     "Braton Prime Receiver",
