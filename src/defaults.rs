@@ -1,7 +1,7 @@
 use crate::market::{Order, User};
 
 pub fn filter(order: &Order) -> bool {
-    order.order_type == "sell"
+    order.ty == "sell"
         && order.user.status == "ingame"
         && order.platinum <= 5
         && order.quantity >= 5

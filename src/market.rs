@@ -1,14 +1,8 @@
 use {
     anyhow::Result,
     reqwest::Response,
-    serde::{
-        de::{self, DeserializeOwned, MapAccess, Visitor},
-        ser::SerializeStruct,
-        Deserialize, Deserializer, Serialize, Serializer,
-    },
+    serde::{de, Deserialize},
     serde_json::Value,
-    std::{fmt, marker::PhantomData},
-    tap::Pipe,
 };
 
 const URL: &str = "https://api.warframe.market/v1";
@@ -18,7 +12,7 @@ pub struct Market {
     pub client: reqwest::Client,
 }
 
-async fn payload_bridge<T: DeserializeOwned>(res: Response, bridge: &str) -> Result<T> {
+async fn payload_bridge<T: de::DeserializeOwned>(res: Response, bridge: &str) -> Result<T> {
     let bytes = res.bytes().await?;
     let value: Value = serde_json::from_slice(&bytes)?;
 
@@ -42,22 +36,23 @@ impl Market {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Order {
     pub quantity: usize,
     pub user: User,
     pub platinum: usize,
-    pub order_type: String,
+    #[serde(rename = "order_type")]
+    pub ty: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct User {
     #[serde(rename = "ingame_name")]
     pub name: String,
     pub status: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Item {
     pub id: String,
     #[serde(rename = "url_name")]

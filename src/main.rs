@@ -1,4 +1,13 @@
-use {clap::Parser, std::collections::HashMap, tokio};
+#![feature(map_try_insert)]
+
+use {
+    clap::Parser,
+    std::collections::{
+        hash_map::{Entry, OccupiedError},
+        HashMap,
+    },
+    tokio,
+};
 
 use crate::{
     defaults::message,
@@ -46,18 +55,20 @@ async fn main() -> anyhow::Result<()> {
             .fetch_orders(&item.url_id)
             .await?
             .into_iter()
-            .filter(|Order { quantity, platinum, user, order_type, .. }| {
+            .filter(|order @ Order { quantity, platinum, user, .. }| {
                 quantity >= &args.quantity
                     && platinum <= &args.max_price
-                    // && user.status == "ingame"
-                    && order_type == "sell"
+                    && user.status == "ingame"
+                    && order.ty == "sell"
             })
             .for_each(|order| {
                 let Order { user, .. } = &order; // isn't working in param match
-                #[rustfmt::skip]
-                orders.entry(user.name.clone())
-                    .and_modify(|orders| orders.push((item, order)))
-                    .or_default();
+                match orders.entry(user.name.clone()) {
+                    Entry::Occupied(mut entry) => entry.get_mut().push((item, order)),
+                    Entry::Vacant(entry) => {
+                        entry.insert(Vec::from([(item, order)]));
+                    }
+                }
             });
     }
 
