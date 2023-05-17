@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
         .filter(|Item { name, .. }| args.items.contains(name))
         .collect();
 
-    let mut orders: HashMap<&str, Vec<Order>> = HashMap::new();
+    let mut orders = HashMap::<_, Vec<_>>::new();
     for item in &items {
         market
             .fetch_orders(&item.url_id)
@@ -53,22 +53,24 @@ async fn main() -> anyhow::Result<()> {
                     && order_type == "sell"
             })
             .for_each(|order| {
+                let Order { user, .. } = &order; // isn't working in param match
                 #[rustfmt::skip]
-                orders.entry(&item.name)
-                    .and_modify(|orders| orders.push(order))
+                orders.entry(user.name.clone())
+                    .and_modify(|orders| orders.push((item, order)))
                     .or_default();
             });
     }
 
-    for (item, orders) in orders {
+    for (user, orders) in orders {
         // fixme: should be configured by verbosity
-        println!("`{item}`:");
-        for Order { user: User { name: user, .. }, platinum, quantity, .. } in orders {
+        println!("Orders of `{user}`:");
+        for (item, Order { platinum, quantity, .. }) in orders {
             println!(
                 "  /w {user} Hi, {user}!\
                You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
                 sum = quantity * platinum.min(args.max_price),
+                item = item.name,
             );
         }
     }
