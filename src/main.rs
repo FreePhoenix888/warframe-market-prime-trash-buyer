@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use clap::Parser;
 use tokio;
 
-use crate::market::{Item, Order, User};
+use crate::market::{Item, Market, Order, User};
 
 mod defaults;
 mod market;
@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     println!("{:?}", args);
 
-    let market = market::Market::new();
+    let market = Market::new();
     let items: Vec<_> = market
         .fetch_items()
         .await?
