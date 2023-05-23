@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
         .filter(|Item { name, .. }| args.items.contains(name))
         .collect();
 
-    let mut orders: HashMap<&str, Vec<Order>> = HashMap::new();
+    let mut orders = HashMap::<_, Vec<_>>::new();
     for item in &items {
         market
             .fetch_orders(&item.url_id)
