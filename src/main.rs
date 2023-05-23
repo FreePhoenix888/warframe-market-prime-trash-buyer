@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
             .fetch_orders(&item.url_id)
             .await?
             .into_iter()
-            .filter(|Order { quantity, platinum_price, user, order_type, .. }| {
+            .filter(|Order { quantity, platinum_price, user, r#type: order_type, .. }| {
                 quantity >= &args.quantity
                     && platinum_price <= &args.max_price
                     && user.status == "ingame"

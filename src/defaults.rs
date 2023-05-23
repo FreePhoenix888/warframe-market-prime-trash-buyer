@@ -2,7 +2,7 @@ use crate::market::Order;
 use anyhow::Result;
 
 pub fn filter(order: &crate::market::Order) -> bool {
-    order.order_type == "sell" &&
+    order.r#type == "sell" &&
         order.user.status == "ingame" &&
         order.platinum_price <= 5 &&
         order.quantity >= 5

@@ -48,7 +48,8 @@ pub struct Order {
     pub user: User,
     #[serde(rename = "platinum")]
     pub platinum_price: usize,
-    pub order_type: String,
+    #[serde(rename = "order_type")]
+    pub r#type: String,
 
 }
 
