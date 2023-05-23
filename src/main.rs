@@ -47,11 +47,11 @@ async fn main() -> anyhow::Result<()> {
             .fetch_orders(&item.url_id)
             .await?
             .into_iter()
-            .filter(|Order { quantity, platinum: platinum_price, user, r#type: order_type, .. }| {
+            .filter(| Order { quantity, platinum, user, r#type, .. }| {
                 quantity >= &args.quantity
-                    && platinum_price <= &args.max_price
+                    && platinum <= &args.max_price
                     && user.status == "ingame"
-                    && order_type == "sell"
+                    && r#type == "sell"
             })
             .for_each(|order| {
                 #[rustfmt::skip]
