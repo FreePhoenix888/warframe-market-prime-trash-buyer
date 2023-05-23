@@ -46,8 +46,7 @@ pub struct ApiResponse<TPayload> {
 pub struct Order {
     pub quantity: usize,
     pub user: User,
-    #[serde(rename = "platinum")]
-    pub platinum_price: usize,
+    pub platinum: usize,
     #[serde(rename = "order_type")]
     pub r#type: String,
 

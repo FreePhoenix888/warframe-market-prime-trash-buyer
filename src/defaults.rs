@@ -4,7 +4,7 @@ use anyhow::Result;
 pub fn filter(order: &crate::market::Order) -> bool {
     order.r#type == "sell" &&
         order.user.status == "ingame" &&
-        order.platinum_price <= 5 &&
+        order.platinum <= 5 &&
         order.quantity >= 5
 }
 
@@ -20,7 +20,7 @@ pub fn filter(order: &crate::market::Order) -> bool {
 // }
 
 pub fn sum(order: &Order) -> usize {
-    order.quantity * order.platinum_price.min(3)
+    order.quantity * order.platinum.min(3)
 }
 
 pub const ITEM_NAMES_TO_BUY: [&str; 36] = [

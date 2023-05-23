@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
             .fetch_orders(&item.url_id)
             .await?
             .into_iter()
-            .filter(|Order { quantity, platinum_price, user, r#type: order_type, .. }| {
+            .filter(|Order { quantity, platinum: platinum_price, user, r#type: order_type, .. }| {
                 quantity >= &args.quantity
                     && platinum_price <= &args.max_price
                     && user.status == "ingame"
@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
 
     for (item, orders) in orders {
         println!("`{item}`:");
-        for Order { user: User { name: user, .. }, platinum_price, quantity, .. } in orders {
+        for Order { user: User { name: user, .. }, platinum: platinum_price, quantity, .. } in orders {
             println!(
                 "  /w {user} Hi, {user}!\
                You have WTS order: {item} for {platinum_price} :platinum: for each on warframe.market. \
