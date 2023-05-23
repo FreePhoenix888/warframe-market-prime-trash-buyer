@@ -21,7 +21,7 @@ struct Args {
 
     /// Buy price in platinum that will be used in messages
     #[arg(long, default_value_t = 3)]
-    buy_price: usize,
+    price: usize,
 
     /// Maximum price in platinum
     #[arg(long, default_value_t = 4)]
