@@ -1,3 +1,4 @@
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use clap::Parser;
 use tokio;
@@ -54,21 +55,26 @@ async fn main() -> anyhow::Result<()> {
                     && r#type == "sell"
             })
             .for_each(|order| {
-                #[rustfmt::skip]
-                orders.entry(&item.name)
-                    .and_modify(|orders| orders.push(order))
-                    .or_default();
+                let Order { user, .. } = &order; // isn't working in param match
+                match orders.entry(user.name.clone()) {
+                    Entry::Occupied(mut entry) => entry.get_mut().push((item, order)),
+                    Entry::Vacant(entry) => {
+                        entry.insert(Vec::from([(item, order)]));
+                    }
+                }
             });
     }
 
-    for (item, orders) in orders {
-        println!("`{item}`:");
-        for Order { user: User { name: user, .. }, platinum: platinum_price, quantity, .. } in orders {
+    for (user, orders) in orders {
+        // fixme: should be configured by verbosity
+        println!("Orders of `{user}`:");
+        for (item, Order { platinum, quantity, .. }) in orders {
             println!(
                 "  /w {user} Hi, {user}!\
-               You have WTS order: {item} for {platinum_price} :platinum: for each on warframe.market. \
+               You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-                sum = quantity * platinum_price.min(args.max_price),
+                sum = quantity * platinum.min(args.max_price),
+                item = item.name,
             );
         }
     }
