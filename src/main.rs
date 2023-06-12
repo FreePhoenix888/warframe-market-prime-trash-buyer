@@ -14,19 +14,19 @@ mod prime_trash_buyer;
 struct Args {
     /// Item names to buy
     #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ',')]
-    items: Vec<String>,
+    item_names: Vec<String>,
 
     /// Minimum quantity of items order must have
     #[arg(long, default_value_t = 3)]
-    quantity: usize,
+    min_quantity: usize,
 
     /// Buy price in platinum that will be used in messages
     #[arg(long, default_value_t = 3)]
-    price: usize,
+    max_price_to_offer: usize,
 
     /// Maximum price in platinum
     #[arg(long, default_value_t = 4)]
-    max_price: usize,
+    max_price_of_order: usize,
 }
 
 #[tokio::main]
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
         .fetch_items()
         .await?
         .into_iter()
-        .filter(|Item { name, .. }| args.items.contains(name))
+        .filter(|Item { name, .. }| args.item_names.contains(name))
         .collect();
 
     let mut orders = HashMap::<_, Vec<_>>::new();
@@ -49,8 +49,8 @@ async fn main() -> anyhow::Result<()> {
             .await?
             .into_iter()
             .filter(| Order { quantity, platinum, user, r#type, .. }| {
-                quantity >= &args.quantity
-                    && platinum <= &args.max_price
+                quantity >= &args.min_quantity
+                    && platinum <= &args.max_price_of_order
                     && user.status == "ingame"
                     && r#type == "sell"
             })
@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
                 "/w {user} Hi, {user}!\
                You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-                sum = quantity * platinum.min(args.max_price),
+                sum = quantity * platinum.min(args.max_price_to_offer),
                 item = item.name,
             );
         }
