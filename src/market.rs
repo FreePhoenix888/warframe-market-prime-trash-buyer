@@ -7,6 +7,7 @@ use serde_json::Value;
 const URL: &str = "https://api.warframe.market/v1";
 const ITEMS: &str = "https://api.warframe.market/v1/items";
 
+#[derive(Clone)]
 pub struct Market {
     pub client: reqwest::Client,
 }
