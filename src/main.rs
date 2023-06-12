@@ -1,5 +1,8 @@
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::fs;
+use std::fs::OpenOptions;
+use std::io::Write;
 use clap::Parser;
 use futures::stream::iter;
 use tokio;
@@ -28,6 +31,10 @@ struct Args {
     /// Maximum allowed price of order in platinum. Orders with higher price will be ignored.
     #[arg(long, default_value_t = 4)]
     max_price_of_order: usize,
+
+    /// Path to file where messages will be saved
+    #[arg(long)]
+    output_file_path: Option<String>,
 }
 
 #[tokio::main]
@@ -71,13 +78,21 @@ async fn main() -> anyhow::Result<()> {
         // fixme: should be configured by verbosity
         println!("Orders of `{user}`:");
         for (item, Order { platinum, quantity, .. }) in orders {
-            println!(
-                "/w {user} Hi, {user}!\
+            let message = format!("/w {user} Hi, {user}!\
                You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-                sum = quantity * platinum.min(args.max_price_to_offer),
-                item = item.name,
-            );
+                                  sum = quantity * platinum.min(args.max_price_to_offer),
+                                  item = item.name);
+            println!("{}", message);
+            if let Some(output_file_path) = args.output_file_path.clone() {
+                 OpenOptions::new()
+                     .write(true)
+                     .append(true)
+                     .open(output_file_path)
+                     .unwrap()
+                     .write_all(message.as_bytes())
+                     .unwrap();
+            }
         }
     }
 
