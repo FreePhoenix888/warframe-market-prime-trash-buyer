@@ -13,7 +13,7 @@ mod prime_trash_buyer;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Item names to buy. If item name contains spaces, wrap it in quotes. Example: "Argon Crystal", "Forma Blueprint". Case sensitive. If is not specified - default item names will be used.
-    #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ',')]
+    #[clap(long, value_parser, num_args = 1.., value_delimiter = ',')]
     item_names: Option<Vec<String>>,
 
     /// Minimum quantity of items order must have. Orders with lower quantity will be ignored.
