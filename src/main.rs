@@ -12,19 +12,19 @@ mod prime_trash_buyer;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Item names to buy
+    /// Item names to buy. If item name contains spaces, wrap it in quotes. Example: "Argon Crystal", "Forma Blueprint". Case sensitive. If is not specified - default item names will be used.
     #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ',')]
-    item_names: Vec<String>,
+    item_names: Option<Vec<String>>,
 
-    /// Minimum quantity of items order must have
+    /// Minimum quantity of items order must have. Orders with lower quantity will be ignored.
     #[arg(long, default_value_t = 3)]
     min_quantity: usize,
 
-    /// Buy price in platinum that will be used in messages
+    /// Maximum price in platinum to offer. If order price is higher, this price will be offered. If order price is lower, order price will be used.
     #[arg(long, default_value_t = 3)]
     max_price_to_offer: usize,
 
-    /// Maximum price in platinum
+    /// Maximum allowable price of order in platinum. Orders with higher price will be ignored.
     #[arg(long, default_value_t = 4)]
     max_price_of_order: usize,
 }
@@ -33,13 +33,14 @@ struct Args {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     println!("{:?}", args);
+    let item_names = args.item_names.as_ref().unwrap_or(&defaults::ITEM_NAMES);
 
     let market = Market::new();
     let items: Vec<_> = market
         .fetch_items()
         .await?
         .into_iter()
-        .filter(|Item { name, .. }| args.item_names.contains(name))
+        .filter(|Item { name, .. }| item_names.contains(name))
         .collect();
 
     let mut orders = HashMap::<_, Vec<_>>::new();
