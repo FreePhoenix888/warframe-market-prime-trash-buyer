@@ -1,6 +1,7 @@
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use clap::Parser;
+use futures::stream::iter;
 use tokio;
 
 use crate::market::{Item, Market, Order, User};
@@ -33,7 +34,7 @@ struct Args {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     println!("{:?}", args);
-    let item_names = args.item_names.as_ref().unwrap_or(&defaults::ITEM_NAMES);
+    let item_names = args.item_names.unwrap_or(defaults::PRIME_TRASH_ITEM_NAMES.iter().map(|&s| s.to_string()).collect::<Vec<String>>());
 
     let market = Market::new();
     let items: Vec<_> = market
