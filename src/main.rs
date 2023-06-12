@@ -24,7 +24,7 @@ struct Args {
     #[arg(long, default_value_t = 3)]
     max_price_to_offer: usize,
 
-    /// Maximum allowable price of order in platinum. Orders with higher price will be ignored.
+    /// Maximum allowed price of order in platinum. Orders with higher price will be ignored.
     #[arg(long, default_value_t = 4)]
     max_price_of_order: usize,
 }
