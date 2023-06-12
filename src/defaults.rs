@@ -23,7 +23,7 @@ pub fn sum(order: &Order) -> usize {
     order.quantity * order.platinum.min(3)
 }
 
-pub const ITEM_NAMES_TO_BUY: [&str; 36] = [
+pub const PRIME_TRASH_ITEM_NAMES: [&str; 36] = [
     "Harrow Prime Blueprint",
     "Astilla Prime Stock",
     "Braton Prime Receiver",
