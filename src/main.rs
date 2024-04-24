@@ -5,6 +5,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use clap::Parser;
 use futures::stream::iter;
+use log::debug;
 use tokio;
 
 use crate::market::{Item, Market, Order, User};
@@ -12,6 +13,8 @@ use crate::market::{Item, Market, Order, User};
 mod defaults;
 mod market;
 mod prime_trash_buyer;
+mod log_with_var;
+
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -39,62 +42,94 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
     let args = Args::parse();
-    println!("{:?}", args);
-    let item_names = args.item_names.unwrap_or(defaults::PRIME_TRASH_ITEM_NAMES.iter().map(|&s| s.to_string()).collect::<Vec<String>>());
+    log_var!(args);
+
+    let item_names_to_buy = get_item_names_to_buy(&args.item_names);
 
     let market = Market::new();
-    let items: Vec<_> = market
-        .fetch_items()
-        .await?
+    let items = fetch_items(&market, &item_names_to_buy).await?;
+    log_var!(items);
+
+    let orders = filter_orders(&market, &args.min_quantity, &args.max_price_of_order, &items).await;
+
+    process_orders(&args.max_price_to_offer, &args.output_file_path, &orders)?;
+
+    Ok(())
+}
+
+fn get_item_names_to_buy(custom_item_names_of_user: &Option<Vec<String>>) -> Vec<String> {
+    custom_item_names_of_user.clone().unwrap_or_else(|| {
+        defaults::PRIME_TRASH_ITEM_NAMES.iter().map(|&s| s.to_string()).collect()
+    })
+}
+
+async fn fetch_items(market: &Market, item_names: &[String]) -> anyhow::Result<Vec<Item>> {
+    let items = market.fetch_items().await?;
+    let filtered_items: Vec<_> = items
         .into_iter()
         .filter(|Item { name, .. }| item_names.contains(name))
         .collect();
+    Ok(filtered_items)
+}
 
-    let mut orders = HashMap::<_, Vec<_>>::new();
-    for item in &items {
-        market
-            .fetch_orders(&item.url_id)
-            .await?
+async fn filter_orders(
+    market: &Market,
+    min_quantity: &usize,
+    max_price_of_order: &usize,
+    items: &[Item],
+) -> HashMap<String, Vec<(Item, Order)>> {
+    let mut orders: HashMap<String, Vec<(Item, Order)>> = HashMap::new();
+
+    for item in items {
+        let item_orders = market.fetch_orders_for_item(&item.url_id).await.unwrap_or_default();
+        let filtered_orders: Vec<_> = item_orders
             .into_iter()
-            .filter(| Order { quantity, platinum, user, r#type, .. }| {
-                quantity >= &args.min_quantity
-                    && platinum <= &args.max_price_of_order
+            .filter(|Order { quantity, platinum, user, r#type, .. }| {
+                quantity >= min_quantity
+                    && platinum <= max_price_of_order
                     && user.status == "ingame"
                     && r#type == "sell"
             })
-            .for_each(|order| {
-                let Order { user, .. } = &order; // isn't working in param match
-                match orders.entry(user.name.clone()) {
-                    Entry::Occupied(mut entry) => entry.get_mut().push((item, order)),
-                    Entry::Vacant(entry) => {
-                        entry.insert(Vec::from([(item, order)]));
-                    }
+            .collect();
+        for order in filtered_orders {
+            let Order { user, .. } = &order;
+            match orders.entry(user.name.clone()) {
+                Entry::Occupied(mut entry) => entry.get_mut().push((item.clone(), order)),
+                Entry::Vacant(entry) => {
+                    entry.insert(vec![(item.clone(), order)]);
                 }
-            });
-    }
-
-    for (user, orders) in orders {
-        // fixme: should be configured by verbosity
-        println!("Orders of `{user}`:");
-        for (item, Order { platinum, quantity, .. }) in orders {
-            let message = format!("/w {user} Hi, {user}!\
-               You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
-               I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
-                                  sum = quantity * platinum.min(args.max_price_to_offer),
-                                  item = item.name);
-            println!("{}", message);
-            if let Some(output_file_path) = args.output_file_path.clone() {
-                 OpenOptions::new()
-                     .write(true)
-                     .append(true)
-                     .open(output_file_path)
-                     .unwrap()
-                     .write_all(message.as_bytes())
-                     .unwrap();
             }
         }
     }
+    orders
+}
 
+fn process_orders(
+    max_price_to_offer: &usize,
+    output_file_path: &Option<String>,
+    orders: &HashMap<String, Vec<(Item, Order)>>,
+) -> anyhow::Result<()> {
+    for (user, orders) in orders {
+        log_var!(user);
+        for (item, Order { platinum, quantity, .. }) in orders {
+            let sum = quantity * platinum.min(max_price_to_offer);
+            let message = format!("/w {user} Hi, {user}!\
+                You have WTS order: {item} for {platinum} :platinum: for each on warframe.market. \
+                I will buy all {quantity} pieces for {sum} :platinum: if you are interested :)",
+                                  sum = sum,
+                                  item = item.name,
+                                  user = user);
+            println!("{}", message);
+            if let Some(output_file_path) = output_file_path {
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .open(output_file_path)?;
+                file.write_all(message.as_bytes())?;
+            }
+        }
+    }
     Ok(())
 }
